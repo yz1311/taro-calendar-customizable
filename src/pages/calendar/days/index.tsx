@@ -1,8 +1,9 @@
 import { View } from '@tarojs/components';
 import './index.less';
-import React, { CSSProperties,FunctionComponent} from 'react';
+import React, { CSSProperties,FunctionComponent, useCallback} from 'react';
 import { formatDate, indexOf, CalendarTools, LunarInfo } from '../utils';
 import { CalendarMark, ExtraInfo } from '../index';
+import Day from '../day';
 
 export type CalendarDateInfo = {
   /** 当前月的第几天1 ~ 31 */
@@ -216,9 +217,16 @@ const Days: FunctionComponent<DaysProps> = ({
   startDay,
   extraInfo
 }) => {
+  const _onDayClick = useCallback((value)=>{
+    onClick&&onClick(value);
+  }, [onClick]);
+
+  const _onDayLongPress = useCallback(args => {
+    onDayLongPress&&onDayLongPress(args);
+  }, [onDayLongPress]);
+
   // @ts-ignore
   const dateObj = date ? new Date(date) : new Date();
-  const minDateObj = new Date(minDate);
   // @ts-ignore
   const maxDateObj = new Date(maxDate ? maxDate : new Date());
   let days: CalendarDateInfo[] = [];
@@ -228,201 +236,40 @@ const Days: FunctionComponent<DaysProps> = ({
   if (view === 'week') {
     days = getDateListByWeek(dateObj, startDay);
   }
-  const today = formatDate(new Date(), 'day');
   const markDateList = marks ? marks.map(value => value.value) : [];
   const extraInfoDateList = extraInfo
     ? extraInfo.map(value => value.value)
     : [];
-  const startDateObj = new Date(selectedRange ? selectedRange.start : '');
-  const endDateObj = new Date(selectedRange ? selectedRange.end : '');
   return (
     <View className="calendar-body" style={bodyStyle} key = {Math.random()}>
       {days.map(value => {
         const markIndex = indexOf(markDateList, value.fullDateStr);
         const extraInfoIndex = indexOf(extraInfoDateList, value.fullDateStr);
-        let disable = false;
-        let className: string[] = [];
 
-        if (!value.currentMonth) {
-          // 非本月
-          className.push('not-this-month');
-        }
-        if (
-          selectedDate === value.fullDateStr &&
-          !(isMultiSelect && selectedRange.end)
-        ) {
-          // 选中
-          // 范围选择模式显示已选范围时，不显示selected
-          className.push('calendar-selected');
-        }
-        if (markIndex !== -1) {
-          // 标记
-          className.push('calendar-marked');
-        }
-        if (extraInfoIndex !== -1) {
-          // 额外信息
-          className.push('calendar-extra-info');
-        }
-        if (value.fullDateStr === today) {
-          // 当天
-          className.push('calendar-today');
-        }
-        if (showDivider) {
-          // 分割线
-          className.push('calendar-line-divider');
-        }
-        let isInRange = false;
-        let rangeStart = false;
-        let rangeEnd = false;
-        if (isMultiSelect && selectedRange.end) {
-          // 范围选择模式
-          const valueDateTimestamp = new Date(value.fullDateStr).getTime();
-          if (
-            valueDateTimestamp >= startDateObj.getTime() &&
-            valueDateTimestamp <= endDateObj.getTime()
-          ) {
-            // 被选择（范围选择）
-            className.push('calendar-range');
-            isInRange = true;
-            if (valueDateTimestamp === startDateObj.getTime()) {
-              // 范围起点
-              rangeStart = true;
-              className.push('calendar-range-start');
-            }
-            if (valueDateTimestamp === endDateObj.getTime()) {
-              // 范围终点
-              rangeEnd = true;
-              className.push('calendar-range-end');
-            }
-          }
-        }
-        if (
-          new Date(value.fullDateStr).getTime() < minDateObj.getTime() ||
-          (maxDate &&
-            new Date(value.fullDateStr).getTime() > maxDateObj.getTime())
-        ) {
-          className.push('not-this-month');
-          disable = true;
-        }
-        let lunarDayInfo =
-          mode === 'lunar'
-            ? CalendarTools.solar2lunar(value.fullDateStr)
-            : null;
-        let lunarClassName = ['lunar-day'];
-        if (lunarDayInfo) {
-          if (lunarDayInfo.IDayCn === '初一') {
-            lunarClassName.push('lunar-month');
-          }
-        }
-        let customStyles: CustomStyles = {};
-        if (customStyleGenerator) {
-          // 用户定制样式
-          const generatorParams: StyleGeneratorParams = {
-            ...value,
-            lunar: lunarDayInfo,
-            selected: selectedDate === value.fullDateStr,
-            multiSelect: {
-              multiSelected: isInRange,
-              multiSelectedStar: rangeStart,
-              multiSelectedEnd: rangeEnd
-            },
-            marked: markIndex !== -1,
-            hasExtraInfo: extraInfoIndex !== -1
-          };
-          customStyles = customStyleGenerator(generatorParams);
-        }
         return (
-          <View
-            key = {Math.random()}
-            onLongPress={
-              onDayLongPress
-                ? () => onDayLongPress({ value: value.fullDateStr })
-                : undefined
-            }
-            className={className.join(' ')}
-            onClick={() => {
-              if (!disable) {
-                onClick(value);
-              }
-            }}
-            style={customStyles.containerStyle}
-          >
-            <View
-              
-              className="calendar-date"
-              style={
-                customStyles.dateStyle || customStyles.dateStyle === {}
-                  ? customStyles.dateStyle
-                  : {
-                      backgroundColor:
-                        selectedDate === value.fullDateStr || isInRange
-                          ? selectedDateColor
-                          : ''
-                    }
-              }
-            >
-              {/* 日期 */}
-              {value.date}
-            </View>
-            {mode === 'normal' ? (
-              ''
-            ) : (
-              <View
-                className={lunarClassName.join(' ')}
-                style={customStyles.lunarStyle}
-              >
-                {/* 农历 */}
-                {(() => {
-                  if (!lunarDayInfo) {
-                    return;
-                  }
-                  lunarDayInfo = lunarDayInfo as LunarInfo;
-                  let dateStr: string;
-                  if (lunarDayInfo.IDayCn === '初一') {
-                    dateStr = lunarDayInfo.IMonthCn;
-                  } else {
-                    //@ts-ignore
-                    dateStr = lunarDayInfo.isTerm
-                      ? lunarDayInfo.Term
-                      : lunarDayInfo.IDayCn;
-                  }
-                  return dateStr;
-                })()}
-              </View>
-            )}
-            {/* 标记 */}
-            <View
-              className="calendar-mark"
-              style={{
-                backgroundColor: markIndex === -1 ? '' : marks[markIndex].color,
-                height: markIndex === -1 ? '' : marks[markIndex].markSize,
-                width: markIndex === -1 ? '' : marks[markIndex].markSize,
-                top: mode === 'lunar' ? '2.0rem' : '1.5rem',
-                ...customStyles.markStyle
-              }}
-            />
-            {extraInfoIndex === -1 ? (
-              ''
-            ) : (
-              <View
-                className="calendar-extra-info"
-                style={{
-                  color:
-                    extraInfoIndex === -1
-                      ? ''
-                      : extraInfo[extraInfoIndex].color,
-                  fontSize:
-                    extraInfoIndex === -1
-                      ? ''
-                      : extraInfo[extraInfoIndex].fontSize,
-                  ...customStyles.extraInfoStyle
-                }}
-              >
-                {/* 额外信息 */}
-                {extraInfo[extraInfoIndex].text}
-              </View>
-            )}
-          </View>
+          <Day
+            key = {value.fullDateStr}
+            onDayLongPress={_onDayLongPress}
+            selected={selectedDate === value.fullDateStr}
+            isMultiSelect={isMultiSelect}
+            markIndex={markIndex}
+            extraInfoIndex={extraInfoIndex}
+            mode={mode}
+            showDivider={showDivider}
+            minDate={minDate}
+            value={value}
+            onClick={_onDayClick}
+            selectedDate={selectedDate}
+            selectedDateColor={selectedDateColor}
+            startDateStr={selectedRange ? selectedRange.start : ''}
+            endDateStr={selectedRange ? selectedRange.end : ''}
+            markColor={markIndex === -1 ? '' : marks[markIndex].color}
+            markSize={markIndex === -1 ? '' : marks[markIndex].markSize}
+            extraInfoColor={extraInfoIndex === -1 ? "" : extraInfo[extraInfoIndex].color}
+            extraInfoSize={extraInfoIndex === -1 ? "" : extraInfo[extraInfoIndex].fontSize}
+            extraInfoText={extraInfoIndex === -1 ? "" : extraInfo[extraInfoIndex].text}
+            customStyleGenerator={customStyleGenerator}
+          />
         );
       })}
     </View>
