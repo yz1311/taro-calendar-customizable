@@ -1,29 +1,33 @@
-import React, {FC} from 'react';
-import {LunarInfo} from "../utils";
+import React, {FC, useEffect, useState} from 'react';
 import {View} from '@tarojs/components';
 import {
   CalendarDateInfo,
   CustomStyles,
   StyleGeneratorParams
 } from "../days/index";
-import {CalendarTools, formatDate, indexOf} from "../utils";
+import {CalendarTools, formatDate, LunarInfo} from "../utils";
 
 interface IProps {
   onDayLongPress?: ({value}: {value: string})=>void;
+  /**
+   * 是否被选中
+   */
   selected: boolean;
   /** 点击事件回调 */
   onClick: (info: CalendarDateInfo) => any;
   value: CalendarDateInfo;
   /** 显示模式 普通/农历 */
   mode: 'normal' | 'lunar';
-  /** 是否范围选择模式 */
-  isMultiSelect: boolean;
+  /** 是否范围选择模式并且endDateStr不为空 **/
+  isMultiSelectAndFinish: boolean;
+  /**
+   * 当前日期是否有mark，没有为-1
+   */
   markIndex: number;
+  /**
+   * 当前日期是否有extraInfo，没有为-1
+   */
   extraInfoIndex: number;
-  /** 范围 开始时间 **/
-  startDateStr: string;
-  /** 范围 结束时间 **/
-  endDateStr: string;
   /** 是否显示分割线 */
   showDivider: boolean;
   /** 最小的可选时间 */
@@ -32,93 +36,124 @@ interface IProps {
   maxDate?: string | undefined;
   /** 自定义样式生成器 */
   customStyleGenerator?: (dateInfo: StyleGeneratorParams) => CustomStyles;
-  /** 选定的日期 */
-  selectedDate: string;
   /** 选定时的背景色 */
   selectedDateColor?: string;
+  /**
+   * mark的背景色
+   */
   markColor: string|undefined;
   markSize: string|undefined;
+  /**
+   * extraInfo的color
+   */
   extraInfoColor: string|undefined;
+  /**
+   * extraInfo的fontSize
+   */
   extraInfoSize: string|undefined;
+  /**
+   * extraInfo的文本
+   */
   extraInfoText: string|undefined;
+  /**
+   * 被选择（范围选择）
+   */
+  isInRange: boolean;
+  /**
+   * 范围起点
+   */
+  rangeStart: boolean;
+  /**
+   * 范围终点
+   */
+  rangeEnd: boolean;
+  /** 禁用(不在minDate和maxDate的时间范围内的日期) */
+  disable: boolean;
 }
 
 const Day:FC<IProps> = (args)=>{
-  const {selected, onDayLongPress, isMultiSelect, onClick, value, mode, markIndex,
-    extraInfoIndex, startDateStr, endDateStr, minDate, maxDate, customStyleGenerator,
-    selectedDate, selectedDateColor, markColor, markSize, extraInfoColor, extraInfoSize,
+  const {selected, onDayLongPress, onClick, value, mode, markIndex,
+    extraInfoIndex, customStyleGenerator, disable,
+    isInRange, rangeStart, rangeEnd, isMultiSelectAndFinish,
+    selectedDateColor, markColor, markSize, extraInfoColor, extraInfoSize,
     extraInfoText,
     showDivider} = args;
-  const startDateObj = new Date(startDateStr);
-  const endDateObj = new Date(endDateStr);
-  const minDateObj = new Date(minDate);
-  // @ts-ignore
-  const maxDateObj = new Date(maxDate ? maxDate : new Date());
-  const today = formatDate(new Date(), 'day');
-  let disable = false;
-  let className: string[] = [];
+  const [className, setClassName] = useState<Set<string>>(new Set());
+  const [customStyles, setCustomStyles] = useState<CustomStyles>({});
 
-  if (!value.currentMonth) {
-    // 非本月
-    className.push('not-this-month');
-  }
-  if (
-    selected &&
-    !(isMultiSelect && endDateStr)
-  ) {
-    // 选中
-    // 范围选择模式显示已选范围时，不显示selected
-    className.push('calendar-selected');
-  }
-  if (markIndex !== -1) {
-    // 标记
-    className.push('calendar-marked');
-  }
-  if (extraInfoIndex !== -1) {
-    // 额外信息
-    className.push('calendar-extra-info');
-  }
-  if (value.fullDateStr === today) {
-    // 当天
-    className.push('calendar-today');
-  }
-  if (showDivider) {
-    // 分割线
-    className.push('calendar-line-divider');
-  }
-  let isInRange = false;
-  let rangeStart = false;
-  let rangeEnd = false;
-  if (isMultiSelect && endDateStr) {
-    // 范围选择模式
-    const valueDateTimestamp = new Date(value.fullDateStr).getTime();
-    if (
-      valueDateTimestamp >= startDateObj.getTime() &&
-      valueDateTimestamp <= endDateObj.getTime()
-    ) {
-      // 被选择（范围选择）
-      className.push('calendar-range');
-      isInRange = true;
-      if (valueDateTimestamp === startDateObj.getTime()) {
-        // 范围起点
-        rangeStart = true;
-        className.push('calendar-range-start');
-      }
-      if (valueDateTimestamp === endDateObj.getTime()) {
-        // 范围终点
-        rangeEnd = true;
-        className.push('calendar-range-end');
-      }
+  useEffect(()=>{
+    let set = new Set<string>();
+    const today = formatDate(new Date(), 'day');
+
+    if (!value.currentMonth || disable) {
+      // 非本月
+      set.add('not-this-month');
     }
-  }
-  if (
-    new Date(value.fullDateStr).getTime() < minDateObj.getTime() ||
-    (maxDate &&
-      new Date(value.fullDateStr).getTime() > maxDateObj.getTime())
-  ) {
-    className.push('not-this-month');
-    disable = true;
-  }
+    if (
+      selected &&
+      !isMultiSelectAndFinish
+    ) {
+      // 选中
+      // 范围选择模式显示已选范围时，不显示selected
+      set.add('calendar-selected');
+    }
+    if (markIndex !== -1) {
+      // 标记
+      set.add('calendar-marked');
+    }
+    if (extraInfoIndex !== -1) {
+      // 额外信息
+      set.add('calendar-extra-info');
+    }
+    if (value.fullDateStr === today) {
+      // 当天
+      set.add('calendar-today');
+    }
+    if (showDivider) {
+      // 分割线
+      set.add('calendar-line-divider');
+    }
+
+    if(isInRange) {
+      set.add('calendar-range');
+    }
+
+    if(rangeStart) {
+      set.add('calendar-range-start');
+    }
+
+    if(rangeEnd) {
+      set.add('calendar-range-end');
+    }
+
+    setClassName(set);
+  }, [disable, extraInfoIndex, isMultiSelectAndFinish, markIndex, selected,
+    showDivider, value.currentMonth, value.fullDateStr, isInRange, rangeStart, rangeEnd]);
+
+  useEffect(()=>{
+    let lunarDayInfo =
+      mode === 'lunar'
+        ? CalendarTools.solar2lunar(value.fullDateStr)
+        : null;
+    if (customStyleGenerator) {
+      // 用户定制样式
+      const generatorParams: StyleGeneratorParams = {
+        ...value,
+        lunar: lunarDayInfo,
+        selected: selected,
+        multiSelect: {
+          multiSelected: isInRange,
+          multiSelectedStar: rangeStart,
+          multiSelectedEnd: rangeEnd
+        },
+        marked: markIndex !== -1,
+        hasExtraInfo: extraInfoIndex !== -1
+      };
+      setCustomStyles(customStyleGenerator(generatorParams))
+    }
+  }, [selected, value, markIndex, extraInfoIndex, customStyleGenerator, isInRange, rangeStart, rangeEnd, mode]);
+
+
   let lunarDayInfo =
     mode === 'lunar'
       ? CalendarTools.solar2lunar(value.fullDateStr)
@@ -129,24 +164,6 @@ const Day:FC<IProps> = (args)=>{
       lunarClassName.push('lunar-month');
     }
   }
-  let customStyles: CustomStyles = {};
-  if (customStyleGenerator) {
-    // 用户定制样式
-    const generatorParams: StyleGeneratorParams = {
-      ...value,
-      lunar: lunarDayInfo,
-      selected: selectedDate === value.fullDateStr,
-      multiSelect: {
-        multiSelected: isInRange,
-        multiSelectedStar: rangeStart,
-        multiSelectedEnd: rangeEnd
-      },
-      marked: markIndex !== -1,
-      hasExtraInfo: extraInfoIndex !== -1
-    };
-    customStyles = customStyleGenerator(generatorParams);
-  }
-  
   return (
     <View
       onLongPress={
@@ -154,7 +171,7 @@ const Day:FC<IProps> = (args)=>{
           ? () => onDayLongPress({ value: value.fullDateStr })
           : undefined
       }
-      className={className.join(' ')}
+      className={Array.from(className).join(' ')}
       onClick={() => {
         if (!disable) {
           onClick(value);
@@ -170,7 +187,7 @@ const Day:FC<IProps> = (args)=>{
             ? customStyles.dateStyle
             : {
               backgroundColor:
-                selectedDate === value.fullDateStr || isInRange
+                selected || isInRange
                   ? selectedDateColor
                   : ''
             }
