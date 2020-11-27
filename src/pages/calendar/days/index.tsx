@@ -303,8 +303,10 @@ const Days: FunctionComponent<DaysProps> = ({
             selectedDateColor={selectedDateColor}
             markColor={markIndex === -1 ? '' : marks[markIndex].color}
             markSize={markIndex === -1 ? '' : marks[markIndex].markSize}
+            markFontSize={markIndex === -1 ? '' : marks[markIndex].fontSize}
+            markText={markIndex === -1 ? '' : marks[markIndex].text}
             extraInfoColor={extraInfoIndex === -1 ? "" : extraInfo[extraInfoIndex].color}
-            extraInfoSize={extraInfoIndex === -1 ? "" : extraInfo[extraInfoIndex].fontSize}
+            extraInfoFontSize={extraInfoIndex === -1 ? "" : extraInfo[extraInfoIndex].fontSize}
             extraInfoText={extraInfoIndex === -1 ? "" : extraInfo[extraInfoIndex].text}
             customStyleGenerator={customStyleGenerator}
             isInRange={isInRange}

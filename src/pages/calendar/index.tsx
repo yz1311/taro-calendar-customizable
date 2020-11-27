@@ -13,10 +13,14 @@ import { CSSProperties } from 'react';
 export type CalendarMark = {
   /** 要标记的日期 YYYY-MM-DD*/
   value: string;
-  /** 标记颜色 */
+  /** 标记颜色(背景色或者前景色) */
   color?: string;
   /** 标记的大小，css中的width、length */
   markSize?: string;
+  /** 标记文本 */
+  text?: string;
+  /** 文字大小 */
+  fontSize?: string;
 };
 
 export type ExtraInfo = {

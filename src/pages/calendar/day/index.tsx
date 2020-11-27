@@ -1,11 +1,12 @@
 import React, {FC, useEffect, useState} from 'react';
-import {View} from '@tarojs/components';
+import {View, Text} from '@tarojs/components';
 import {
   CalendarDateInfo,
   CustomStyles,
   StyleGeneratorParams
 } from "../days/index";
 import {CalendarTools, formatDate, LunarInfo} from "../utils";
+import './index.less';
 
 interface IProps {
   onDayLongPress?: ({value}: {value: string})=>void;
@@ -42,7 +43,18 @@ interface IProps {
    * mark的背景色
    */
   markColor: string|undefined;
+  /**
+   * mark的直径
+   */
   markSize: string|undefined;
+  /**
+   * mark的文本,如果不为空，会导致markSize失效
+   */
+  markText?: string;
+  /**
+   * mark的fontSize
+   */
+  markFontSize: string|undefined;
   /**
    * extraInfo的color
    */
@@ -50,7 +62,7 @@ interface IProps {
   /**
    * extraInfo的fontSize
    */
-  extraInfoSize: string|undefined;
+  extraInfoFontSize: string|undefined;
   /**
    * extraInfo的文本
    */
@@ -67,7 +79,9 @@ interface IProps {
    * 范围终点
    */
   rangeEnd: boolean;
-  /** 禁用(不在minDate和maxDate的时间范围内的日期) */
+  /**
+   * 禁用(不在minDate和maxDate的时间范围内的日期)
+   */
   disable: boolean;
 }
 
@@ -75,7 +89,7 @@ const Day:FC<IProps> = (args)=>{
   const {selected, onDayLongPress, onClick, value, mode, markIndex,
     extraInfoIndex, customStyleGenerator, disable,
     isInRange, rangeStart, rangeEnd, isMultiSelectAndFinish,
-    selectedDateColor, markColor, markSize, extraInfoColor, extraInfoSize,
+    selectedDateColor, markColor, markSize, markText, markFontSize, extraInfoColor, extraInfoFontSize,
     extraInfoText,
     showDivider} = args;
   const [className, setClassName] = useState<Set<string>>(new Set());
@@ -159,11 +173,20 @@ const Day:FC<IProps> = (args)=>{
       ? CalendarTools.solar2lunar(value.fullDateStr)
       : null;
   let lunarClassName = ['lunar-day'];
+  let lunarDateStr = '';
   if (lunarDayInfo) {
+    lunarDayInfo = lunarDayInfo as LunarInfo;
     if (lunarDayInfo.IDayCn === '初一') {
       lunarClassName.push('lunar-month');
+      lunarDateStr = lunarDayInfo.IMonthCn;
+    } else {
+      //@ts-ignore
+      lunarDateStr = lunarDayInfo.isTerm
+        ? lunarDayInfo.Term
+        : lunarDayInfo.IDayCn;
     }
   }
+
   return (
     <View
       onLongPress={
@@ -180,8 +203,7 @@ const Day:FC<IProps> = (args)=>{
       style={customStyles.containerStyle}
     >
       <View
-
-        className="calendar-date"
+        className='calendar-date'
         style={
           customStyles.dateStyle || customStyles.dateStyle === {}
             ? customStyles.dateStyle
@@ -194,66 +216,61 @@ const Day:FC<IProps> = (args)=>{
         }
       >
         {/* 日期 */}
-        {value.date}
-      </View>
-      {mode === 'normal' ? (
-        ''
-      ) : (
+        <Text>{value.date}</Text>
+        {mode === 'lunar' && (
+          <View
+            className={lunarClassName.join(' ')}
+            style={customStyles.lunarStyle}
+          >
+            {lunarDateStr}
+          </View>
+        )}
         <View
-          className={lunarClassName.join(' ')}
-          style={customStyles.lunarStyle}
-        >
-          {/* 农历 */}
-          {(() => {
-            if (!lunarDayInfo) {
-              return;
-            }
-            lunarDayInfo = lunarDayInfo as LunarInfo;
-            let dateStr: string;
-            if (lunarDayInfo.IDayCn === '初一') {
-              dateStr = lunarDayInfo.IMonthCn;
-            } else {
-              //@ts-ignore
-              dateStr = lunarDayInfo.isTerm
-                ? lunarDayInfo.Term
-                : lunarDayInfo.IDayCn;
-            }
-            return dateStr;
-          })()}
-        </View>
-      )}
-      {/* 标记 */}
-      <View
-        className="calendar-mark"
-        style={{
-          backgroundColor: markIndex === -1 ? '' : markColor,
-          height: markIndex === -1 ? '' : markSize,
-          width: markIndex === -1 ? '' : markSize,
-          top: mode === 'lunar' ? '2.0rem' : '1.5rem',
-          ...customStyles.markStyle
-        }}
-      />
-      {extraInfoIndex === -1 ? (
-        ''
-      ) : (
-        <View
-          className="calendar-extra-info"
+          className='calendar-extra-info'
           style={{
             color:
-              extraInfoIndex === -1
+              extraInfoIndex === -1 || selected
                 ? ''
                 : extraInfoColor,
             fontSize:
               extraInfoIndex === -1
                 ? ''
-                : extraInfoSize,
-            ...customStyles.extraInfoStyle
+                : extraInfoFontSize,
+            ...customStyles.extraInfoStyle,
           }}
         >
           {/* 额外信息 */}
-          {extraInfoText}
+          {extraInfoIndex === -1 ? '' :extraInfoText}
         </View>
-      )}
+      </View>
+      {/* 标记 */}
+      <View
+        className='calendar-mark-wrapper'
+      >
+        {markText ?
+          <View
+            className='calendar-mark-text'
+            style={{
+              color: markIndex === -1 ? '' : markColor,
+              fontSize: markIndex === -1 ? '' : markFontSize,
+              ...customStyles.markStyle
+            }}
+          >
+            {markText}
+          </View>
+          :
+          <View
+            className='calendar-mark'
+            style={{
+              backgroundColor: markIndex === -1 ? '' : markColor,
+              height: markIndex === -1 ? '' : markSize,
+              width: markIndex === -1 ? '' : markSize,
+              ...customStyles.markStyle
+            }}
+          >
+          </View>
+        }
+      </View>
     </View>
   );
 }

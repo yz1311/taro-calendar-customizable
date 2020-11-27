@@ -1,0 +1,123 @@
+
+// 分割线
+.calendar-line-divider {
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
+.calendar-date {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 80px;
+  box-sizing: border-box;
+  padding: 8px 0;
+  width: 90%;
+}
+
+// 选中样式
+.calendar-selected>.calendar-date {
+  background-color: #90b1ef;
+  border-radius: 10px;
+  color: white;
+}
+
+// 范围选择
+.calendar-range>.calendar-date {
+  background-color: #90b1ef;
+  color: white;
+}
+
+// 范围选择起点
+.calendar-range-end>.calendar-date {
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+// 范围选择终点
+.calendar-range-start>.calendar-date {
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+}
+
+// 当天
+.calendar-today {
+  //font-weight: bolder;
+  color: #90b1ef;
+}
+
+// 非本月
+.not-this-month {
+  color: #e2e5e8 !important;
+}
+
+// 农历
+.lunar-day {
+  display: inline-block;
+  text-align: center;
+  font-size: 2.5vw;
+  opacity: 0.7;
+}
+
+// 农历初一
+.lunar-month {
+  text-decoration-color: red;
+  text-decoration-line: underline;
+}
+
+.calendar-mark-wrapper {
+  height: 30px;
+  width: 100%;
+  position: relative;
+}
+
+//圆点型mark的默认样式
+.calendar-mark {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 8px;
+  background-color: transparent;
+  display: inline-block;
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  font-size: 2.3vw;
+}
+
+//圆点型mark的选中样式
+.calendar-marked>.calendar-mark {
+  background-color: #7096e0;
+}
+
+.calendar-mark-text {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  //文本本来就有空隙，不用设置top
+  top: 0;
+  overflow-x: hidden;
+  white-space: nowrap;
+  background-color: transparent;
+  display: inline-block;
+  font-size: 22px;
+}
+
+//圆点型mark的选中样式
+.calendar-marked>.calendar-mark-text {
+  color: #7096e0;
+}
+
+// 额外信息
+.calendar-extra-info {
+  position: absolute;
+  right: 5px;
+  font-size: 2.3vw;
+  top: 5px;
+  color: #FF9800;
+}
+
+.calendar-marked .calendar-extra-info {
+  color: white;
+}
