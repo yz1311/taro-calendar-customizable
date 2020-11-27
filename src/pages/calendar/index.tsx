@@ -437,7 +437,7 @@ export default class Calendar extends Component<IProps, IState> {
         {isSwiper ? (
           <Swiper
             style={{
-              height: view === 'month' ? '19rem' : '3rem',
+              height: view === 'month' ? (mode == 'lunar' ?'22rem' : '20.5rem') : (mode == 'lunar' ?'5rem' : '4rem'),
               ...bodyStyle
             }}
             vertical={isVertical}
