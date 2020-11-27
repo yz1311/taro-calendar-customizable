@@ -115,10 +115,6 @@ const Day:FC<IProps> = (args)=>{
       // 标记
       set.add('calendar-marked');
     }
-    if (extraInfoIndex !== -1) {
-      // 额外信息
-      set.add('calendar-extra-info');
-    }
     if (value.fullDateStr === today) {
       // 当天
       set.add('calendar-today');
