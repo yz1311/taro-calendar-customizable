@@ -1,4 +1,3 @@
-import Taro from '@tarojs/taro';
 import React,{ FunctionComponent, useState } from 'react'
 import Calendar from './calendar/index';
 import { View, Button, Text, Switch ,Label} from '@tarojs/components';
@@ -65,7 +64,7 @@ const Index: FunctionComponent = () => {
       <Button onClick={() => setSelected('2019-08-08')}>选中2019-08-08</Button>
 
       <View>
-        
+
         <Switch
           id = "weekViewSwitch"
           checked={isWeekView}
@@ -76,10 +75,10 @@ const Index: FunctionComponent = () => {
         >
         </Switch>
         <Label for="weekViewSwitch">周视图</Label>
-      </View>        
-      
-      <View> 
-        
+      </View>
+
+      <View>
+
         <Switch
           id = "hideSwitch"
           checked={hideController}
@@ -90,9 +89,9 @@ const Index: FunctionComponent = () => {
         >
         </Switch>
         <Label for="hideSwitch">隐藏控制器</Label>
-      </View> 
+      </View>
       <View>
-        
+
         <Switch
           id = "lunarSwitch"
           checked={isLunar}
@@ -101,10 +100,10 @@ const Index: FunctionComponent = () => {
             setIsLunar(e.target.value);
           }}
         >
-          
+
         </Switch>
         <Label for = "lunarSwitch">农历</Label>
-      </View>  
+      </View>
 
     </View>
   );

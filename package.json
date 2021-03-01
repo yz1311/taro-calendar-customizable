@@ -1,6 +1,6 @@
 {
   "name": "@yz1311/taro-calendar-customizable",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "private": false,
   "description": "可自定义部分样式的taro日历组件",
   "templateInfo": {
@@ -33,19 +33,20 @@
   ],
   "author": "zkyTech",
   "dependencies": {
-    "@babel/runtime": "^7.7.7",
+
+  },
+  "devDependencies": {
     "@tarojs/components": "3.0.0-rc.6",
     "@tarojs/runtime": "3.0.0-rc.6",
     "@tarojs/taro": "3.0.0-rc.6",
     "@tarojs/react": "3.0.0-rc.6",
     "react-dom": "^16.10.0",
-    "react": "^16.10.0"
-  },
-  "devDependencies": {
+    "react": "^16.10.0",
     "@types/webpack-env": "^1.13.6",
     "@types/react": "^16.0.0",
     "@tarojs/mini-runner": "3.0.0-rc.6",
     "@babel/core": "^7.8.0",
+    "@babel/runtime": "^7.7.7",
     "@tarojs/webpack-runner": "3.0.0-rc.6",
     "babel-preset-taro": "3.0.0-rc.6",
     "eslint-config-taro": "3.0.0-rc.6",
@@ -57,6 +58,14 @@
     "@typescript-eslint/parser": "^2.x",
     "@typescript-eslint/eslint-plugin": "^2.x",
     "typescript": "^3.7.0"
+  },
+  "peerDependencies": {
+    "@tarojs/components": ">=3",
+    "@tarojs/react": ">=3",
+    "@tarojs/runtime": ">=3",
+    "@tarojs/taro": ">=3",
+    "react": ">=16.10.0",
+    "react-dom": ">=16.10.0"
   },
   "license": "MIT",
   "repository": {
